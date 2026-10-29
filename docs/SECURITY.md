@@ -2,7 +2,7 @@
 
 ## Current state
 
-Auth, profile, booking, partner, and admin code plus RLS migrations are present. The hosted Supabase project has all eleven migrations applied; the Auth API is reachable and email sign-in is enabled. Signup, email confirmation, password sign-in, self-profile RLS, partner tenant isolation, concurrent booking, partner self-review prevention, safe partner tee-time closure, inventory mutation boundaries, and partner report scoping have been verified. PayOS now uses a server-only service-role key for signed-webhook reconciliation; it must never be exposed to the browser. The PayOS round trip remains unverified until sandbox secrets and a public HTTPS webhook are configured. Environment validation rejects partial configuration and non-HTTPS remote URLs (loopback is allowed for local development).
+Auth, profile, booking, partner, and admin code plus RLS migrations are present. The hosted Supabase project has all twelve migrations applied; the Auth API is reachable and email sign-in is enabled. Signup, email confirmation, password sign-in, self-profile RLS, partner tenant isolation, concurrent booking, partner self-review prevention, safe partner tee-time closure, inventory mutation boundaries, private staging isolation, and partner report scoping have been verified. PayOS now uses a server-only service-role key for signed-webhook reconciliation; it must never be exposed to the browser. The PayOS round trip remains unverified until sandbox secrets and a public HTTPS webhook are configured. Environment validation rejects partial configuration and non-HTTPS remote URLs (loopback is allowed for local development).
 
 ## Planned permission matrix
 
@@ -26,6 +26,8 @@ Partner membership and ownership are tenant relationships, not global role claim
 - Inputs are validated in server actions and database functions. PayOS client/API/checksum credentials and `SUPABASE_SERVICE_ROLE_KEY` are server-only. None of those secrets are configured in the current workspace.
 - `GET /api/health` performs a read-only Supabase query using the publishable key, with a three-second timeout. It returns only `ok` or `unavailable`; configuration and database details are kept in server logs.
 - Inventory permissions limit partner course updates to detail columns and owner/manager roles. Only the admin RPC changes course verification/publication. Direct partner updates/deletes of tee-time inventory are revoked; authorized closure uses the booking-aware audited RPC.
+- Imported course candidates are stored only in non-exposed `private` staging tables with row-level security and no grants to API roles, including service role. Each snapshot retains its source hash and raw record; constraints require draft publication and disabled booking.
+- The attached 88-record archive is staged under SHA-256 `2aba545dae02111410c6b4a64478bbe0302b2732a3de5fc189936cfa8a1568cd`; all rows remain admin-unverified, draft, and booking-disabled.
 - Next.js sends `nosniff`, clickjacking protection, a strict-origin referrer policy, a restrictive permissions policy, and HSTS headers. HSTS is sent without `includeSubDomains` or preload until the production domain/subdomain policy is confirmed. A Content Security Policy remains deferred because the deployment's trusted resource origins have not been established.
 
 ## Verified against the hosted project

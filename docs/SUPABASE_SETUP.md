@@ -53,6 +53,7 @@ Cần hai golfer riêng biệt đã xác nhận email để chạy kiểm thử 
 npx supabase db query --linked --file supabase/tests/mvp_critical_flows.sql
 npx supabase db query --linked --file supabase/tests/partner_booking_reports.sql
 npx supabase db query --linked --file supabase/tests/payos_payments.sql
+npx supabase db query --linked --file supabase/tests/course_import_staging.sql
 powershell -ExecutionPolicy Bypass -File supabase/tests/mvp_concurrency_test.ps1
 ```
 
@@ -95,9 +96,23 @@ Sau khi cập nhật `.env.local`, khởi động lại dev server. Trong worksp
 - Chọn retention backup và Point-in-Time Recovery theo gói Supabase production trước khi nhận giao dịch thật. Ghi rõ người có quyền khôi phục, quy trình phục hồi, RPO/RTO, và định kỳ kiểm thử restore trên project riêng.
 - Thiết lập kênh cảnh báo, người trực, và quy trình ứng phó sự cố trước khi mở production.
 
+## Nhập danh mục tham khảo vào staging
+
+Gói `GolfHub_Vietnam_Golf_Data_2026-10-29.zip` được nhập vào hai bảng trong schema `private`, không hiển thị qua API hay danh sách sân công khai. Bản ghi giữ nguyên nguồn, trạng thái và nội dung gốc; mọi dòng bắt buộc ở `draft`, `booking_enabled=false`, `admin_verification_status=unverified`. 79 hồ sơ ghi `secondary_source_only`, 9 hồ sơ `partial_primary_verification`; bằng chứng sơ cấp chỉ áp dụng cho trường được dẫn chứng, không xác minh toàn sân. Import không tạo tổ chức đối tác, sân hoạt động, giá, ảnh hoặc khung giờ.
+
+Sau khi migration staging đã được áp dụng, chạy script với đường dẫn tới ZIP. Có thể chạy lại cùng một file an toàn; khóa theo source ID và SHA-256 không ghi đè snapshot khác:
+
+```powershell
+npx supabase db push --linked
+powershell -NoProfile -ExecutionPolicy Bypass -File supabase/scripts/import_course_staging.ps1 -ArchivePath "D:\path\to\GolfHub_Vietnam_Golf_Data_2026-10-29.zip"
+npx supabase db query --linked --file supabase/tests/course_import_staging.sql
+```
+
+Chỉ đối chiếu trong SQL Editor hoặc kết nối quản trị database. Trước khi đưa một sân ra công khai, cần xác minh trực tiếp với đơn vị vận hành, địa chỉ, trạng thái hoạt động và quyền sử dụng dữ liệu; không bật booking từ trường reported.
+
 ## Tình trạng
 
-Project thử nghiệm đã được cấu hình và cả mười một migration đã áp dụng thành công; Auth API có phản hồi và email sign-in đang bật. Đăng ký, xác nhận email, đăng nhập, tạo hồ sơ, quyền đọc hồ sơ golfer, tenant isolation, booking đồng thời, luồng đặt/hủy, ngăn quản trị viên tự xét duyệt hồ sơ đối tác, đóng khung giờ có lượt đặt đang hoạt động, giới hạn quyền sửa inventory và các quy tắc đối soát PayOS trong cơ sở dữ liệu đã được kiểm thử. Link email xác nhận vẫn cần một round-trip PKCE mới trong cùng browser context. Tích hợp PayOS có trong mã nhưng chưa chạy giao dịch cho tới khi cấu hình credentials sandbox và webhook HTTPS công khai. Chưa có dữ liệu sân/khung giờ thật được xác minh; booking giữ chỗ hết hạn sau 10 phút.
+Project thử nghiệm đã được cấu hình và cả mười hai migration đã áp dụng thành công; Auth API có phản hồi và email sign-in đang bật. Đăng ký, xác nhận email, đăng nhập, tạo hồ sơ, quyền đọc hồ sơ golfer, tenant isolation, booking đồng thời, luồng đặt/hủy, ngăn quản trị viên tự xét duyệt hồ sơ đối tác, đóng khung giờ có lượt đặt đang hoạt động, giới hạn quyền sửa inventory, quyền truy cập staging và các quy tắc đối soát PayOS trong cơ sở dữ liệu đã được kiểm thử. 88 ứng viên sân chỉ nằm trong staging riêng tư; chưa có sân/khung giờ thật được xác minh và công khai. Link email xác nhận vẫn cần một round-trip PKCE mới trong cùng browser context. Tích hợp PayOS có trong mã nhưng chưa chạy giao dịch cho tới khi cấu hình credentials sandbox và webhook HTTPS công khai. Booking giữ chỗ hết hạn sau 10 phút.
 
 ## Cấu hình PayOS sandbox
 

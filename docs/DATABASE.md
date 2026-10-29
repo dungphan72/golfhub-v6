@@ -1,6 +1,6 @@
 # Database design
 
-The schema is defined in eleven versioned migrations under `supabase/migrations`. All eleven have been applied to the configured Supabase project; hosted schema lint and rollback-scoped partner-report, PayOS-payment, tee-time closure, and inventory permission integration tests pass.
+The schema is defined in twelve versioned migrations under `supabase/migrations`. All twelve have been applied to the configured Supabase project; hosted schema lint and rollback-scoped partner-report, PayOS-payment, tee-time closure, inventory permission, and staging access integration tests pass.
 
 ## MVP entities
 
@@ -16,6 +16,7 @@ The schema is defined in eleven versioned migrations under `supabase/migrations`
 - `notifications`: user/partner-scoped booking messages without payment secrets.
 - `audit_logs`: append-only records for partner/course reviews and partner tee-time closures.
 - `payment_transactions` and `payment_webhook_events`: server-managed PayOS payment attempts, idempotent webhook references, and manual reconciliation records.
+- `private.course_import_batches` and `private.golf_course_import_staging`: source-hash tracked, non-public snapshots awaiting human verification; API roles have no access. Imported verification labels are limited to `secondary_source_only` and `partial_primary_verification`, while admin verification must remain `unverified`.
 
 The partner report RPC aggregates booking counts, players, lifecycle statuses, and active booking value over a bounded date range. It runs as the authenticated caller and only returns organizations linked to that caller's partner memberships. Booking value is not proof of collected revenue.
 

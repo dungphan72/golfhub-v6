@@ -16,6 +16,8 @@ const courseSchema = z.object({
   description: z.string().trim().max(2000),
 });
 
+const courseDetailsSchema = courseSchema.omit({ partnerId: true });
+
 function createSlug(value: string) {
   const slug = value
     .normalize("NFD")
@@ -65,6 +67,54 @@ export async function createCourseAction(
   }
 
   redirect("/business/courses?submitted=1");
+}
+
+export async function updatePendingCourseAction(
+  _state: PartnerActionState,
+  formData: FormData,
+): Promise<PartnerActionState> {
+  const input = z.object({
+    courseId: z.string().uuid(),
+    ...courseDetailsSchema.shape,
+  }).safeParse({
+    courseId: formData.get("courseId"),
+    name: formData.get("name"),
+    city: formData.get("city"),
+    province: formData.get("province"),
+    address: formData.get("address"),
+    description: formData.get("description"),
+  });
+  if (!input.success) {
+    return { error: "Vui lòng kiểm tra các thông tin sân golf." };
+  }
+
+  const { supabase } = await requireCurrentUser("/business/courses");
+  const { data, error } = await supabase
+    .from("golf_courses")
+    .update({
+      name: input.data.name,
+      city: input.data.city,
+      province: input.data.province,
+      address: input.data.address,
+      description: input.data.description,
+    })
+    .eq("id", input.data.courseId)
+    .eq("verification_status", "pending")
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Pending course update failed", { code: error.code });
+    if (error.code === "42501") {
+      return { error: "Bạn không có quyền cập nhật hồ sơ sân này." };
+    }
+    return { error: "Không thể cập nhật hồ sơ sân. Vui lòng thử lại." };
+  }
+  if (!data) {
+    return { error: "Chỉ có thể cập nhật sân đang chờ xét duyệt." };
+  }
+
+  redirect("/business/courses?courseUpdated=1");
 }
 
 const teeTimeSchema = z.object({

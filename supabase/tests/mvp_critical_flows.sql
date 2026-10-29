@@ -169,10 +169,59 @@ begin
   if visible_count <> 0 then raise exception 'Partner can read another organization'; end if;
   select count(*) into visible_count from public.golf_courses where id = fixture.course_a;
   if visible_count <> 1 then raise exception 'Partner cannot read their own course'; end if;
+  update public.golf_courses
+  set address = 'Updated temporary fixture'
+  where id = fixture.course_a;
+  select count(*) into visible_count
+  from public.golf_courses
+  where id = fixture.course_a and address = 'Updated temporary fixture';
+  if visible_count <> 1 then raise exception 'Partner could not update course details'; end if;
+
+  begin
+    update public.golf_courses
+    set verification_status = 'verified'
+    where id = fixture.course_a;
+    raise exception 'Partner directly changed course verification status';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    update public.golf_courses
+    set is_published = false
+    where id = fixture.course_a;
+    raise exception 'Partner directly changed course publication status';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  select count(*) into visible_count
+  from public.golf_courses
+  where id = fixture.course_a
+    and verification_status = 'verified'
+    and is_published;
+  if visible_count <> 1 then raise exception 'Partner changed course verification or publication'; end if;
+
   select count(*) into visible_count from public.golf_courses where id = fixture.course_b;
   if visible_count <> 0 then raise exception 'Partner can read another course'; end if;
   select count(*) into visible_count from public.tee_times where id = fixture.slot_one;
   if visible_count <> 1 then raise exception 'Partner cannot read their own tee time'; end if;
+  begin
+    update public.tee_times
+    set price_per_player_minor = price_per_player_minor
+    where id = fixture.slot_one;
+    raise exception 'Partner directly updated tee-time inventory';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    delete from public.tee_times where id = fixture.slot_three;
+    raise exception 'Partner directly deleted tee-time inventory';
+  exception when insufficient_privilege then
+    null;
+  end;
+
   select count(*) into visible_count from public.partner_members where partner_id = fixture.partner_a;
   if visible_count <> 1 then raise exception 'Partner cannot read their own membership'; end if;
   select count(*) into visible_count from public.partner_members where partner_id = fixture.partner_b;
@@ -300,6 +349,17 @@ begin
   set unauthorized_booking = new_unauthorized_booking;
 
   perform pg_catalog.set_config('request.jwt.claim.sub', fixture.other_user_id::text, true);
+
+  update public.golf_courses
+  set address = 'Updated pending temporary fixture'
+  where id = fixture.course_b;
+  select count(*) into visible_count
+  from public.golf_courses
+  where id = fixture.course_b
+    and address = 'Updated pending temporary fixture'
+    and verification_status = 'pending'
+    and not is_published;
+  if visible_count <> 1 then raise exception 'Course owner could not update pending details safely'; end if;
 
   select count(*) into visible_count from public.profiles where user_id = auth.uid();
   if visible_count <> 1 then raise exception 'Second golfer cannot read their own profile'; end if;

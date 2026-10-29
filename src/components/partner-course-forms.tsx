@@ -40,6 +40,47 @@ export function CreateCourseForm({
   );
 }
 
+export function EditPendingCourseForm({
+  action,
+  course,
+}: {
+  action: PartnerAction;
+  course: {
+    id: string;
+    name: string;
+    city: string;
+    province: string;
+    address: string;
+    description: string;
+  };
+}) {
+  const [state, formAction, pending] = useActionState(action, {});
+
+  return (
+    <details className="tee-time-editor">
+      <summary>Sửa thông tin hồ sơ chờ duyệt</summary>
+      <form action={formAction} className="profile-form partner-course-form">
+        <input name="courseId" type="hidden" value={course.id} />
+        {state.error && <p className="form-error" role="alert">{state.error}</p>}
+        <label>Tên sân<input defaultValue={course.name} maxLength={160} name="name" required /></label>
+        <label>Thành phố<input defaultValue={course.city} maxLength={100} name="city" required /></label>
+        <label>Tỉnh / thành<input defaultValue={course.province} maxLength={100} name="province" required /></label>
+        <label>Địa chỉ<input defaultValue={course.address} maxLength={240} name="address" required /></label>
+        <label>
+          Mô tả
+          <textarea defaultValue={course.description} maxLength={2000} name="description" rows={4} />
+        </label>
+        <p className="field-hint">
+          Thông tin sửa đổi vẫn cần quản trị viên xác minh trước khi công khai.
+        </p>
+        <button className="button button-primary" disabled={pending}>
+          {pending ? "Đang cập nhật..." : "Lưu thông tin"}
+        </button>
+      </form>
+    </details>
+  );
+}
+
 export function CreateTeeTimeForm({
   action,
   courseId,

@@ -1,6 +1,6 @@
 # Database design
 
-The schema is defined in ten versioned migrations under `supabase/migrations`. All ten have been applied to the configured Supabase project; hosted schema lint and rollback-scoped partner-report, PayOS-payment, and tee-time closure integration tests pass.
+The schema is defined in eleven versioned migrations under `supabase/migrations`. All eleven have been applied to the configured Supabase project; hosted schema lint and rollback-scoped partner-report, PayOS-payment, tee-time closure, and inventory permission integration tests pass.
 
 ## MVP entities
 
@@ -24,6 +24,7 @@ The partner report RPC aggregates booking counts, players, lifecycle statuses, a
 - Use UUID identifiers, foreign keys, explicit deletion behavior, and UTC timestamps.
 - The MVP is VND-only: amounts are integer VND, with no floating-point arithmetic.
 - Snapshot the accepted price and currency on a booking. Never trust a client-supplied price.
+- Partner users may edit course details but cannot change verification/publication fields; tee-time inventory is created or closed through controlled paths, not direct updates/deletes.
 - Make financial transaction history append-only; corrections should be compensating records.
 - Add indexes for common course, partner, user, status, and time-window lookups.
 

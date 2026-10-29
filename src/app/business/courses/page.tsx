@@ -3,11 +3,13 @@ import {
   CreateCourseForm,
   CreateTeeTimeForm,
   DeactivateTeeTimeForm,
+  EditPendingCourseForm,
 } from "@/components/partner-course-forms";
 import {
   createCourseAction,
   createTeeTimeAction,
   deactivateTeeTimeAction,
+  updatePendingCourseAction,
 } from "@/app/business/courses/actions";
 import { requireCurrentUser } from "@/lib/auth";
 
@@ -31,6 +33,7 @@ const courseSchema = z.array(
     city: z.string(),
     province: z.string(),
     address: z.string(),
+    description: z.string(),
     verification_status: z.string(),
     is_published: z.boolean(),
   }),
@@ -53,6 +56,7 @@ export default async function PartnerCoursesPage({
     submitted?: string;
     slotAdded?: string;
     slotClosed?: string;
+    courseUpdated?: string;
   }>;
 }) {
   const [{ supabase, user }, params] = await Promise.all([
@@ -81,7 +85,7 @@ export default async function PartnerCoursesPage({
   const { data: courseRows, error: courseError } = verifiedPartnerIds.length
     ? await supabase
         .from("golf_courses")
-        .select("id, partner_id, name, city, province, address, verification_status, is_published")
+        .select("id, partner_id, name, city, province, address, description, verification_status, is_published")
         .in("partner_id", memberships.data.map((membership) => membership.partner_id))
         .order("name")
     : { data: [], error: null };
@@ -134,6 +138,11 @@ export default async function PartnerCoursesPage({
           Đã đóng khung giờ; khung giờ này không nhận lượt đặt mới.
         </p>
       )}
+      {params.courseUpdated === "1" && (
+        <p className="form-notice booking-notice" role="status">
+          Đã cập nhật thông tin sân; hồ sơ vẫn chờ quản trị viên xác minh.
+        </p>
+      )}
       {verifiedPartnerIds.length === 0 ? (
         <section className="empty-state application-status">
           <h2>Chưa có doanh nghiệp được xác minh</h2>
@@ -155,11 +164,23 @@ export default async function PartnerCoursesPage({
               <article className="partner-course-card" key={course.id}>
                 <div>
                   <span className={`booking-status booking-status-${course.verification_status}`}>
-                    {course.verification_status === "verified" ? "Đã xác minh" : "Chờ xác minh"}
+                    {course.verification_status === "verified"
+                      ? "Đã xác minh"
+                      : course.verification_status === "pending"
+                        ? "Chờ xác minh"
+                        : course.verification_status === "rejected"
+                          ? "Đã từ chối"
+                          : "Tạm ngưng"}
                   </span>
                   <h2>{course.name}</h2>
                   <p>{course.city}, {course.province} · {course.address}</p>
                 </div>
+                {course.verification_status === "pending" && (
+                  <EditPendingCourseForm
+                    action={updatePendingCourseAction}
+                    course={course}
+                  />
+                )}
                 {course.verification_status === "verified" && (
                   <CreateTeeTimeForm action={createTeeTimeAction} courseId={course.id} />
                 )}

@@ -97,7 +97,7 @@ Sau khi cập nhật `.env.local`, khởi động lại dev server. Trong worksp
 
 ## Tình trạng
 
-Project thử nghiệm đã được cấu hình và cả mười migration đã áp dụng thành công; Auth API có phản hồi và email sign-in đang bật. Đăng ký, xác nhận email, đăng nhập, tạo hồ sơ, quyền đọc hồ sơ golfer, tenant isolation, booking đồng thời, luồng đặt/hủy, ngăn quản trị viên tự xét duyệt hồ sơ đối tác, đóng khung giờ có lượt đặt đang hoạt động và các quy tắc đối soát PayOS trong cơ sở dữ liệu đã được kiểm thử. Link email xác nhận vẫn cần một round-trip PKCE mới trong cùng browser context. Tích hợp PayOS có trong mã nhưng chưa chạy giao dịch cho tới khi cấu hình credentials sandbox và webhook HTTPS công khai. Chưa có dữ liệu sân/khung giờ thật được xác minh; booking giữ chỗ hết hạn sau 10 phút.
+Project thử nghiệm đã được cấu hình và cả mười một migration đã áp dụng thành công; Auth API có phản hồi và email sign-in đang bật. Đăng ký, xác nhận email, đăng nhập, tạo hồ sơ, quyền đọc hồ sơ golfer, tenant isolation, booking đồng thời, luồng đặt/hủy, ngăn quản trị viên tự xét duyệt hồ sơ đối tác, đóng khung giờ có lượt đặt đang hoạt động, giới hạn quyền sửa inventory và các quy tắc đối soát PayOS trong cơ sở dữ liệu đã được kiểm thử. Link email xác nhận vẫn cần một round-trip PKCE mới trong cùng browser context. Tích hợp PayOS có trong mã nhưng chưa chạy giao dịch cho tới khi cấu hình credentials sandbox và webhook HTTPS công khai. Chưa có dữ liệu sân/khung giờ thật được xác minh; booking giữ chỗ hết hạn sau 10 phút.
 
 ## Cấu hình PayOS sandbox
 

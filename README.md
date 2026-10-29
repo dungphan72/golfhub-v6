@@ -4,7 +4,7 @@ Golf Hub is a digital platform foundation for golfers, golf businesses, and the 
 
 ## Current status
 
-The app includes email/password auth, golfer profiles, verified-course discovery, temporary booking holds, partner onboarding/course management, admin review, booking notifications, partner booking reports, and a PayOS checkout/webhook integration. All ten migrations are applied to the configured Supabase project; RLS isolation, concurrent booking, critical booking flows, partner self-review prevention, safe tee-time closure, and partner report aggregation/date windows/tenant isolation have been tested. PayOS credentials and a public HTTPS webhook are not configured, so live/sandbox payment round-trip remains unverified. A fresh email-link PKCE round trip remains outstanding. No real golf-course inventory is loaded.
+The app includes email/password auth, golfer profiles, verified-course discovery, temporary booking holds, partner onboarding/course management, admin review, booking notifications, partner booking reports, and a PayOS checkout/webhook integration. All eleven migrations are applied to the configured Supabase project; RLS isolation, concurrent booking, critical booking flows, partner self-review prevention, safe tee-time closure, inventory permission boundaries, and partner report aggregation/date windows/tenant isolation have been tested. PayOS credentials and a public HTTPS webhook are not configured, so live/sandbox payment round-trip remains unverified. A fresh email-link PKCE round trip remains outstanding. No real golf-course inventory is loaded.
 
 ## Requirements
 

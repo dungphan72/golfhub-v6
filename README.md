@@ -36,6 +36,8 @@ powershell -ExecutionPolicy Bypass -File supabase/tests/mvp_concurrency_test.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File supabase/tests/mvp_e2e_fixture.ps1
 ```
 
+GitHub Actions runs lint, typecheck, unit tests, and the production build on pushes to `main` and pull requests. The workflow does not need Supabase or PayOS secrets.
+
 The SQL integration test requires two distinct confirmed test golfers and rolls back all fixture data. The concurrency test uses separate sessions and removes its temporary fixture rows. The E2E command creates a disposable `TEST ONLY` course; remove it afterward with `-Action Cleanup`.
 
 ## Project documentation

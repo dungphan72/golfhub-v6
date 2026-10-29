@@ -1,0 +1,14 @@
+# Known issues and limitations
+
+- Email/password signup, confirmation, login, profile trigger, and golfer self-profile access are verified. Fixed the PKCE callback correlation by enabling Supabase's `sb_flow_id` redirect parameter in all server clients and passing it into code exchange. A fresh confirmation-link round trip is still needed; the previous test was blocked by Supabase's email-send rate limit. Use the same browser profile and `127.0.0.1` hostname.
+- Two confirmed identities have passed rollback-scoped checks for private profile/role/booking isolation and partner-tenant membership, course, and tee-time visibility; unauthorized booking cancellation is rejected. Partner application submission, duplicate prevention, admin-only partner/course review, ownership assignment, audit logging, and prevention of administrator self-review (approval and rejection) pass rollback-scoped database tests. Both real partner applications are approved, and their organizations and owner memberships are verified. Two-session concurrency, app-level search/hold/history/cancellation/notification flows, and partner report aggregation/date-window/tenant isolation passed using disposable test fixtures. No verified real-course or tee-time inventory has been loaded yet.
+- Partner organizations have been approved, but no submitted golf course has passed course verification. Public course discovery therefore remains empty.
+- Booking holds are ten minutes. PayOS checkout and signature-verified webhook handling are implemented, but not operational until sandbox credentials and a public HTTPS webhook are configured and tested. A return redirect alone never confirms a booking. Late payments and payment amount/link mismatches are held for manual reconciliation. Refunds and settlement are not implemented.
+- Partner reports summarize booking records only; they do not represent collected revenue, payment reconciliation, or settlement.
+- Partner verification currently means an admin-approved onboarding application; document uploads and external business verification are not implemented.
+- Course filters currently support name and city only; price, distance, amenities, date filters, maps, and geolocation are not implemented.
+- `GET /api/health` checks Supabase readiness with a bounded read-only query, but no external uptime monitor or alert routing is configured. Baseline HTTP security headers are enabled; CSP is deferred until deployment resource origins are known. Production edge rate limiting, backup retention/PITR selection, a restore drill, and incident procedures remain outstanding.
+- The generated workspace was empty and is not currently a Git repository; version-control history and CI are not configured.
+- Mobile and accessibility behavior still needs browser-based verification and keyboard testing.
+
+These are explicit scope limitations. Phase 1 should not be declared complete until database-backed tests pass.

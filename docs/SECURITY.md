@@ -2,7 +2,7 @@
 
 ## Current state
 
-Auth, profile, booking, partner, and admin code plus RLS migrations are present. The hosted Supabase project has all nine migrations applied; the Auth API is reachable and email sign-in is enabled. Signup, email confirmation, password sign-in, self-profile RLS, partner tenant isolation, concurrent booking, partner self-review prevention, and partner report scoping have been verified. PayOS now uses a server-only service-role key for signed-webhook reconciliation; it must never be exposed to the browser. The PayOS round trip remains unverified until sandbox secrets and a public HTTPS webhook are configured. Environment validation rejects partial configuration and non-HTTPS remote URLs (loopback is allowed for local development).
+Auth, profile, booking, partner, and admin code plus RLS migrations are present. The hosted Supabase project has all ten migrations applied; the Auth API is reachable and email sign-in is enabled. Signup, email confirmation, password sign-in, self-profile RLS, partner tenant isolation, concurrent booking, partner self-review prevention, safe partner tee-time closure, and partner report scoping have been verified. PayOS now uses a server-only service-role key for signed-webhook reconciliation; it must never be exposed to the browser. The PayOS round trip remains unverified until sandbox secrets and a public HTTPS webhook are configured. Environment validation rejects partial configuration and non-HTTPS remote URLs (loopback is allowed for local development).
 
 ## Planned permission matrix
 

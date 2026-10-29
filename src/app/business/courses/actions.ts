@@ -133,3 +133,43 @@ export async function createTeeTimeAction(
 
   redirect("/business/courses?slotAdded=1");
 }
+
+export async function deactivateTeeTimeAction(
+  _state: PartnerActionState,
+  formData: FormData,
+): Promise<PartnerActionState> {
+  const input = z.object({
+    teeTimeId: z.string().uuid(),
+  }).safeParse({
+    teeTimeId: formData.get("teeTimeId"),
+  });
+  if (!input.success) {
+    return { error: "Khung giờ không hợp lệ." };
+  }
+
+  const { supabase } = await requireCurrentUser("/business/courses");
+  const { data, error } = await supabase.rpc("deactivate_partner_tee_time", {
+    requested_tee_time_id: input.data.teeTimeId,
+  });
+  if (error) {
+    console.error("Partner tee-time closure failed", { code: error.code });
+    if (error.code === "42501") {
+      return { error: "Bạn không có quyền quản lý khung giờ này." };
+    }
+    if (error.code === "P0001" && error.message.includes("TEE_TIME_HAS_ACTIVE_BOOKINGS")) {
+      return { error: "Không thể đóng: khung giờ đang có lượt giữ chỗ hoặc đã xác nhận." };
+    }
+    if (error.code === "P0001" && error.message.includes("TEE_TIME_ALREADY_STARTED")) {
+      return { error: "Không thể đóng khung giờ đã bắt đầu." };
+    }
+    return { error: "Không thể đóng khung giờ. Vui lòng tải lại và thử lại." };
+  }
+
+  const result = z.enum(["deactivated", "already_inactive"]).safeParse(data);
+  if (!result.success) {
+    console.error("Tee-time closure returned an invalid state");
+    return { error: "Kết quả đóng khung giờ không hợp lệ. Vui lòng tải lại trang." };
+  }
+
+  redirect("/business/courses?slotClosed=1");
+}

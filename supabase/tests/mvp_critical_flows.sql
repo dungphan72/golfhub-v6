@@ -207,6 +207,20 @@ begin
     if sqlerrm <> 'TEE_TIME_FULL' then raise; end if;
   end;
 
+  begin
+    perform public.deactivate_partner_tee_time(fixture.slot_one);
+    raise exception 'Partner closed a tee time with an active hold';
+  exception when sqlstate 'P0001' then
+    if sqlerrm <> 'TEE_TIME_HAS_ACTIVE_BOOKINGS' then raise; end if;
+  end;
+
+  begin
+    perform public.deactivate_partner_tee_time(fixture.slot_four);
+    raise exception 'Partner closed another organization tee time';
+  exception when insufficient_privilege then
+    if sqlerrm <> 'PARTNER_TEE_TIME_ACCESS_REQUIRED' then raise; end if;
+  end;
+
   booking_to_expire := public.create_booking(
     fixture.slot_three, 1, 'f3800000-0000-4000-8000-000000000003'
   );
@@ -241,6 +255,27 @@ begin
   perform public.cancel_booking(fixture.partner_booking);
   select status into actual_status from public.bookings where id = fixture.partner_booking;
   if actual_status <> 'cancelled' then raise exception 'Pending hold did not cancel'; end if;
+
+  if public.deactivate_partner_tee_time(fixture.slot_three) <> 'deactivated' then
+    raise exception 'Partner could not close a tee time with no active bookings';
+  end if;
+  if public.deactivate_partner_tee_time(fixture.slot_three) <> 'already_inactive' then
+    raise exception 'Repeated tee-time closure was not idempotent';
+  end if;
+
+  select count(*) into visible_count
+  from public.tee_times
+  where id = fixture.slot_three and not is_active;
+  if visible_count <> 1 then raise exception 'Closed tee time remains active'; end if;
+
+  begin
+    perform public.create_booking(
+      fixture.slot_three, 1, 'f3800000-0000-4000-8000-000000000005'
+    );
+    raise exception 'New booking was accepted for a closed tee time';
+  exception when sqlstate 'P0002' then
+    if sqlerrm <> 'TEE_TIME_UNAVAILABLE' then raise; end if;
+  end;
 
   select count(*) into visible_count
   from public.booking_status_history
@@ -310,6 +345,22 @@ end;
 $$;
 
 reset role;
+
+do $$
+declare
+  closed_slot_id uuid;
+  audit_count integer;
+begin
+  select slot_three into strict closed_slot_id from pg_temp.mvp_integration_fixture;
+  select count(*) into audit_count
+  from public.audit_logs
+  where entity_type = 'tee_time'
+    and entity_id = closed_slot_id
+    and actor_id = (select user_id from pg_temp.mvp_integration_fixture)
+    and action = 'tee_time_deactivated';
+  if audit_count <> 1 then raise exception 'Tee-time deactivation audit entry is missing'; end if;
+end;
+$$;
 
 insert into public.user_roles (user_id, role)
 select other_user_id, 'ADMIN'

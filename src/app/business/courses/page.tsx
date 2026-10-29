@@ -1,8 +1,13 @@
 import { z } from "zod";
-import { CreateCourseForm, CreateTeeTimeForm } from "@/components/partner-course-forms";
+import {
+  CreateCourseForm,
+  CreateTeeTimeForm,
+  DeactivateTeeTimeForm,
+} from "@/components/partner-course-forms";
 import {
   createCourseAction,
   createTeeTimeAction,
+  deactivateTeeTimeAction,
 } from "@/app/business/courses/actions";
 import { requireCurrentUser } from "@/lib/auth";
 
@@ -37,13 +42,18 @@ const teeTimeSchema = z.array(
     starts_at: z.string(),
     capacity: z.number(),
     price_per_player_minor: z.union([z.number(), z.string()]),
+    is_active: z.boolean(),
   }),
 );
 
 export default async function PartnerCoursesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ submitted?: string; slotAdded?: string }>;
+  searchParams: Promise<{
+    submitted?: string;
+    slotAdded?: string;
+    slotClosed?: string;
+  }>;
 }) {
   const [{ supabase, user }, params] = await Promise.all([
     requireCurrentUser("/business/courses"),
@@ -119,6 +129,11 @@ export default async function PartnerCoursesPage({
       {params.slotAdded === "1" && (
         <p className="form-notice booking-notice" role="status">Đã thêm khung giờ.</p>
       )}
+      {params.slotClosed === "1" && (
+        <p className="form-notice booking-notice" role="status">
+          Đã đóng khung giờ; khung giờ này không nhận lượt đặt mới.
+        </p>
+      )}
       {verifiedPartnerIds.length === 0 ? (
         <section className="empty-state application-status">
           <h2>Chưa có doanh nghiệp được xác minh</h2>
@@ -151,13 +166,24 @@ export default async function PartnerCoursesPage({
                 {teeTimes.data
                   .filter((teeTime) => teeTime.course_id === course.id)
                   .map((teeTime) => (
-                    <p className="partner-tee-time" key={teeTime.id}>
-                      {new Intl.DateTimeFormat("vi-VN", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                        timeZone: "Asia/Ho_Chi_Minh",
-                      }).format(new Date(teeTime.starts_at))} · {teeTime.capacity} chỗ
-                    </p>
+                    <div className="partner-tee-time" key={teeTime.id}>
+                      <p>
+                        {new Intl.DateTimeFormat("vi-VN", {
+                          dateStyle: "short",
+                          timeStyle: "short",
+                          timeZone: "Asia/Ho_Chi_Minh",
+                        }).format(new Date(teeTime.starts_at))} · {teeTime.capacity} chỗ ·{" "}
+                        {Number(teeTime.price_per_player_minor).toLocaleString("vi-VN")} VND/người
+                      </p>
+                      {teeTime.is_active ? (
+                        <DeactivateTeeTimeForm
+                          action={deactivateTeeTimeAction}
+                          teeTimeId={teeTime.id}
+                        />
+                      ) : (
+                        <span className="booking-status">Đã đóng</span>
+                      )}
+                    </div>
                   ))}
               </article>
             ))}

@@ -66,3 +66,23 @@ export function CreateTeeTimeForm({
     </details>
   );
 }
+
+export function DeactivateTeeTimeForm({
+  action,
+  teeTimeId,
+}: {
+  action: PartnerAction;
+  teeTimeId: string;
+}) {
+  const [state, formAction, pending] = useActionState(action, {});
+
+  return (
+    <form action={formAction} className="tee-time-editor-form">
+      <input name="teeTimeId" type="hidden" value={teeTimeId} />
+      {state.error && <p className="form-error" role="alert">{state.error}</p>}
+      <button className="button button-secondary" disabled={pending}>
+        {pending ? "Đang đóng..." : "Đóng khung giờ"}
+      </button>
+    </form>
+  );
+}

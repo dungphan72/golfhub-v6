@@ -1,6 +1,6 @@
 # Database design
 
-The schema is defined in nine versioned migrations under `supabase/migrations`. All nine have been applied to the configured Supabase project; the hosted schema lint and rollback-scoped partner-report and PayOS-payment integration tests pass.
+The schema is defined in ten versioned migrations under `supabase/migrations`. All ten have been applied to the configured Supabase project; hosted schema lint and rollback-scoped partner-report, PayOS-payment, and tee-time closure integration tests pass.
 
 ## MVP entities
 
@@ -14,7 +14,7 @@ The schema is defined in nine versioned migrations under `supabase/migrations`. 
 - `booking_status_history`: append-only actor, transition, and timestamp record.
 - `partner_applications`: user-submitted onboarding applications, reviewed by admins.
 - `notifications`: user/partner-scoped booking messages without payment secrets.
-- `audit_logs`: append-only records for partner and course review actions.
+- `audit_logs`: append-only records for partner/course reviews and partner tee-time closures.
 - `payment_transactions` and `payment_webhook_events`: server-managed PayOS payment attempts, idempotent webhook references, and manual reconciliation records.
 
 The partner report RPC aggregates booking counts, players, lifecycle statuses, and active booking value over a bounded date range. It runs as the authenticated caller and only returns organizations linked to that caller's partner memberships. Booking value is not proof of collected revenue.
